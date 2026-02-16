@@ -83,7 +83,7 @@ flowchart TD
         subgraph Infrastructure
             I1[D1ProductRepository]
             I2[D1CartRepository]
-            I3[MCP Tools (7)]
+            I3["MCP Tools (7)"]
         end
         
         Domain --> Application
