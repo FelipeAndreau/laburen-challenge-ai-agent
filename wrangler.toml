@@ -1,0 +1,18 @@
+name = "laburen-asistente-ventas-mcp-server"
+main = "src/index.ts"
+compatibility_date = "2024-12-05"
+compatibility_flags = ["nodejs_compat"]
+
+[durable_objects]
+bindings = [
+  { name = "MCP", class_name = "LaburenMCP" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["LaburenMCP"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "laburen-db"
+database_id = "" # Run: npx wrangler d1 create laburen-db → paste ID here
