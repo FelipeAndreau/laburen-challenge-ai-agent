@@ -4,8 +4,9 @@
 
 ## 🏗️ Arquitectura
 
-```
-Usuario → WhatsApp → Chatwoot → Laburen (AI Agent) → MCP Server → Cloudflare D1
+```mermaid
+flowchart LR
+    User(Usuario) --> WA(WhatsApp) --> CW(Chatwoot) --> Laburen(Laburen AI Agent) --> MCP(MCP Server) --> D1(Cloudflare D1)
 ```
 
 El servidor implementa el **Model Context Protocol (MCP)** para exponer herramientas que un agente de IA utiliza para buscar productos, gestionar carritos de compra y derivar conversaciones a agentes humanos.

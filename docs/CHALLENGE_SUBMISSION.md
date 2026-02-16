@@ -33,83 +33,67 @@
 
 ## Diagrama de Flujo de Interacción del Agente
 
-```
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-│   USUARIO   │      │  WHATSAPP   │      │  CHATWOOT   │      │   LABUREN   │      │ MCP SERVER  │
-│             │      │  Meta API   │      │    CRM      │      │   Agente    │      │  Cloudflare │
-└──────┬──────┘      └──────┬──────┘      └──────┬──────┘      └──────┬──────┘      └──────┬──────┘
-       │                    │                    │                    │                    │
-       │ "Hola, quiero      │                    │                    │                    │
-       │  camisetas negras" │                    │                    │                    │
-       │───────────────────>│                    │                    │                    │
-       │                    │    Webhook         │                    │                    │
-       │                    │───────────────────>│                    │                    │
-       │                    │                    │    Webhook         │                    │
-       │                    │                    │───────────────────>│                    │
-       │                    │                    │                    │                    │
-       │                    │                    │                    │  list_products     │
-       │                    │                    │                    │  (color:"Negro",   │
-       │                    │                    │                    │   tipo:"Camiseta") │
-       │                    │                    │                    │───────────────────>│
-       │                    │                    │                    │                    │
-       │                    │                    │                    │   [productos]      │
-       │                    │                    │                    │<───────────────────│
-       │                    │                    │                    │                    │
-       │                    │                    │   Respuesta IA     │                    │
-       │                    │                    │<───────────────────│                    │
-       │                    │   Mensaje          │                    │                    │
-       │                    │<───────────────────│                    │                    │
-       │ "Encontré estas    │                    │                    │                    │
-       │  camisetas..."     │                    │                    │                    │
-       │<───────────────────│                    │                    │                    │
-       │                    │                    │                    │                    │
-       │ "Quiero 50 del     │                    │                    │                    │
-       │  producto 003"     │                    │                    │                    │
-       │───────────────────>│───────────────────>│───────────────────>│                    │
-       │                    │                    │                    │  create_cart       │
-       │                    │                    │                    │───────────────────>│
-       │                    │                    │                    │   {cart_id}        │
-       │                    │                    │                    │<───────────────────│
-       │                    │                    │                    │                    │
-       │                    │                    │                    │  add_products      │
-       │                    │                    │                    │───────────────────>│
-       │                    │                    │                    │   {success}        │
-       │                    │                    │                    │<───────────────────│
-       │                    │                    │                    │                    │
-       │                    │                    │   Respuesta IA     │                    │
-       │                    │                    │<───────────────────│                    │
-       │                    │<───────────────────│                    │                    │
-       │ "Agregué 50 u.     │                    │                    │                    │
-       │  Total: $64.600"   │                    │                    │                    │
-       │<───────────────────│                    │                    │                    │
+```mermaid
+sequenceDiagram
+    participant U as USUARIO
+    participant W as WHATSAPP
+    participant C as CHATWOOT
+    participant L as LABUREN (AI)
+    participant M as MCP SERVER
+
+    U->>W: "Hola, quiero camisetas negras"
+    W->>C: Webhook
+    C->>L: Webhook
+    L->>M: list_products(color:"Negro", tipo:"Camiseta")
+    M-->>L: [productos]
+    L-->>C: Respuesta IA
+    C-->>W: Mensaje
+    W-->>U: "Encontré estas camisetas..."
+    
+    U->>W: "Quiero 50 del producto 003"
+    W->>C: Webhook
+    C->>L: Webhook
+    L->>M: create_cart
+    M-->>L: {cart_id}
+    L->>M: add_products
+    M-->>L: {success}
+    L-->>C: Respuesta IA
+    C-->>W: Mensaje
+    W-->>U: "Agregué 50 u. Total: $64.600"
 ```
 
 ---
 
 ## Arquitectura del Sistema
 
-```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                         MCP SERVER (Cloudflare Workers)                     │
-│                                                                             │
-│  ┌─────────────┐    ┌─────────────────┐    ┌─────────────────────────────┐ │
-│  │   Domain    │    │   Application   │    │      Infrastructure         │ │
-│  │             │    │                 │    │                             │ │
-│  │ • Product   │───>│ • ListProducts  │───>│ • D1ProductRepository       │ │
-│  │ • Cart      │    │ • ManageCart    │    │ • D1CartRepository          │ │
-│  │ • CartItem  │    │                 │    │ • MCP Tools (7)             │ │
-│  └─────────────┘    └─────────────────┘    └──────────────┬──────────────┘ │
-│                                                           │                 │
-│                                                           ▼                 │
-│                                            ┌─────────────────────────────┐ │
-│                                            │     Cloudflare D1           │ │
-│                                            │     (SQLite + FTS5)         │ │
-│                                            │                             │ │
-│                                            │  • 100 productos            │ │
-│                                            │  • Búsqueda full-text       │ │
-│                                            │  • Carritos persistentes    │ │
-│                                            └─────────────────────────────┘ │
-└────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph S["MCP SERVER (Cloudflare Workers)"]
+        subgraph Domain
+            D1[Product]
+            D2[Cart]
+            D3[CartItem]
+        end
+        
+        subgraph Application
+            A1[ListProducts]
+            A2[ManageCart]
+        end
+        
+        subgraph Infrastructure
+            I1[D1ProductRepository]
+            I2[D1CartRepository]
+            I3[MCP Tools (7)]
+        end
+        
+        Domain --> Application
+        Application --> Infrastructure
+    end
+    
+    Infrastructure --> DB[("Cloudflare D1\n(SQLite + FTS5)")]
+    
+    style S fill:#fff9c4,stroke:#fbc02d
+    style DB fill:#fce4ec,stroke:#c62828
 ```
 
 ---
