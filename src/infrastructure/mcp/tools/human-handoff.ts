@@ -4,16 +4,18 @@ import { Container } from "../../di/container";
 
 /**
  * Parsea el conversation_id compuesto de Laburen.
- * Formato: "chatwoot_<laburen_id>_<chatwoot_conv_id>_<account_id>_<inbox_id>"
+ * Formato: "chatwoot_<laburen_id>_<bot_id>_<account_id>_<conversation_id>"
  * Ejemplo: "chatwoot_cmlo1t09p2iu7bre2f363spil_145_162_11"
- * Retorna { chatwootConvId: "145", accountId: "162" } o null si no matchea.
+ *   - 145 = bot_id
+ *   - 162 = account_id
+ *   - 11  = conversation_id (último número)
  */
 function parseChatwootConversationId(rawId: string): { chatwootConvId: string; accountId: string } | null {
     const parts = rawId.split("_");
-    // Formato esperado: chatwoot _ laburenId _ convId _ accountId _ inboxId
+    // Formato: chatwoot _ laburenId _ botId _ accountId _ conversationId
     if (parts.length >= 4 && parts[0] === "chatwoot") {
-        const chatwootConvId = parts[parts.length - 3];
-        const accountId = parts[parts.length - 2];
+        const chatwootConvId = parts[parts.length - 1];  // último = conversation_id
+        const accountId = parts[parts.length - 2];       // penúltimo = account_id
         if (/^\d+$/.test(chatwootConvId) && /^\d+$/.test(accountId)) {
             return { chatwootConvId, accountId };
         }
