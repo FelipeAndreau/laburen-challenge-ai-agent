@@ -1,0 +1,26 @@
+{
+  "name": "laburen-asistente-ventas-mcp-server",
+  "version": "0.3.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "cf-typegen": "wrangler types",
+    "db:schema:local": "wrangler d1 execute laburen-db --local --file=db/schema.sql",
+    "db:seed:local": "wrangler d1 execute laburen-db --local --file=db/seed.sql",
+    "db:schema:remote": "wrangler d1 execute laburen-db --remote --file=db/schema.sql",
+    "db:seed:remote": "wrangler d1 execute laburen-db --remote --file=db/seed.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241205.0",
+    "bun-types": "latest",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.63.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "agents": "^0.4.0",
+    "zod": "^3.24.1"
+  }
+}
